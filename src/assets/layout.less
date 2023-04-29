@@ -1,0 +1,77 @@
+// ----------flex垂直水平居中-----------
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-center-column {
+  .flex-center;
+  flex-direction: column;
+}
+
+.flex-center-row {
+  .flex-center;
+  flex-direction: row;
+}
+
+// ----------flex水平靠左-----------
+.flex-left-center {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.flex-left-center-column {
+  .flex-left-center;
+  flex-direction: column;
+}
+
+.flex-left-center-row {
+  .flex-left-center;
+  flex-direction: row;
+}
+
+// ----------flex垂直靠左-----------
+.flex-left-left-column {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.flex-left-left-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: row;
+}
+
+// ----------flex垂直水平靠左-----------
+.flex-space-between {
+  display: flex;
+  justify-content: space-between;
+}
+
+// ----------绝对居中------------
+.absolute-center {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+}
+
+// ----------超出部分用...省略, 传递行数------------
+
+.overflow-hidden-width(@width:'') {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: @width;
+}
+
+.overflow-hidden-height(@line) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @line;
+  overflow: hidden;
+}
