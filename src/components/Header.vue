@@ -1,26 +1,29 @@
 <template>
   <div>
-    <a-layout-header class="app-layout__header" :style="{ position: 'fixed', zIndex: 1, width: '100%' }">
+    <a-layout-header
+      class="app-layout__header"
+      :style="{ position: 'fixed', zIndex: 1, width: '100%' }"
+    >
       <div class="logo">FINCODE</div>
       <a-menu v-model="curMenu" theme="dark" mode="horizontal" @click="menuNav">
         <a-menu-item key="sr">股票排行</a-menu-item>
         <a-menu-item key="ir">投资推荐</a-menu-item>
-<!--        <a-menu-item key="kg">知识图谱</a-menu-item>-->
+        <!--        <a-menu-item key="kg">知识图谱</a-menu-item>-->
       </a-menu>
       <!-- <a-input-search class="search" placeholder="请输入股票代码/名称" /> -->
       <SearchInput class="search"></SearchInput>
 
       <div class="user-menu">
         <a-button v-if="!hasLogin" type="link" @click="loginOrRegister"
-        >登录/注册
-        </a-button
-        >
+          >登录/注册
+        </a-button>
         <div v-else>
           <a-dropdown class="drop-down" :trigger="['click']">
-            <span @click="(e) => e.preventDefault()">
+            <span @click="e => e.preventDefault()">
               {{ username }} <a-icon type="down" />
             </span>
             <a-menu slot="overlay">
+              <a-menu-item @click="toPersonalCenter">个人中心</a-menu-item>
               <a-menu-item @click="jumpToRiskReport">风险报告</a-menu-item>
               <a-menu-item @click="signout">登出</a-menu-item>
             </a-menu>
@@ -104,7 +107,11 @@ export default {
       }
     }
   },
-
+  // 个人中心
+  toPersonalCenter() {
+    // this.$router.push({ path: '/riskreport' })
+    console.log('test')
+  },
   watch: {
     '$route.path'(newVal, oldVal) {
       if (newVal === '/') {
