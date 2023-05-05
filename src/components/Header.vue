@@ -109,8 +109,8 @@ export default {
   },
   // 个人中心
   toPersonalCenter() {
-    // this.$router.push({ path: '/riskreport' })
-    console.log('test')
+    this.$router.push({ path: '/personalcenter' })
+    // console.log('test')
   },
   watch: {
     '$route.path'(newVal, oldVal) {

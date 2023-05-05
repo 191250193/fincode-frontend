@@ -59,6 +59,20 @@ const routes = [
     meta: {
       title: '策略详情'
     }
+  },
+  {
+    path: '/personalcenter',
+    component: () => import('@/views/PersonalCenter.vue'),
+    meta: {
+      title: '个人中心'
+    }
+  },
+  {
+    path: '/stockpool/:stockId',
+    component: () => import('@/views/StockPool.vue'),
+    meta: {
+      title: '股票池'
+    }
   }
 ]
 

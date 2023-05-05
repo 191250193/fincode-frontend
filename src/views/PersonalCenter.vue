@@ -13,11 +13,11 @@
             src="../assets/personal-center.png"
             alt=""
           />
-          <div style="color:#1890ff">个人中心</div>
+          <div  style="color:#1890ff;cursor: pointer">个人中心</div>
         </li>
         <li>
           <img class="stock-pool-icon" src="../assets/stock-pool.png" alt="" />
-          <div>股票池</div>
+          <div style="cursor: pointer" @click="toStockPool">股票池</div>
         </li>
       </ul>
     </div>
@@ -64,6 +64,11 @@
           </a-table-column>
           <a-table-column align="center" title="成交量" data-index="vol" />
           <a-table-column align="center" title="成交额" data-index="amount" />
+          <a-table-column
+            align="center"
+            title="取消关注"
+            data-index="unfollow"
+          />
         </a-table>
       </div>
       <div class="follow-stock-footer">
@@ -93,6 +98,12 @@ export default {
       pageSize: 8,
       totalPages: 10
     }
+  },
+  methods: {
+    // 股票池
+    toStockPool() {
+      this.$router.push({ path: `/stockpool/${567}` })
+    }
   }
 }
 </script>
@@ -103,7 +114,7 @@ export default {
   float: left;
 }
 .personal-center-left {
-  width: 156px;
+  width: 15%;
   margin-top: 13px;
 }
 .user-avatar {
@@ -155,7 +166,7 @@ export default {
   float: right;
 }
 .personal-center-right {
-  width: 1280px;
+  width: 85%;
   min-height: 1000px;
 }
 .stock-rank {
@@ -164,10 +175,10 @@ export default {
     border: 1px solid #e8e8e8;
   }
 }
-.follow-stock{
+.follow-stock {
   margin-top: 15px;
 }
-.follow-stock-footer{
+.follow-stock-footer {
   margin-top: 15px;
   display: flex;
   justify-content: center;
