@@ -151,9 +151,10 @@ export default {
       this.stockDataLoading = true
       getStockRank(this.curSortType, this.pageNum, this.pageSize)
         .then(res => {
-          // console.log(res)
+          // console.log('d:', d.id)
+          // console.log('res', res.data)
           this.stockData = res.data.map(sri => this.stockRankInfoMapper(sri))
-          // console.log(this.stockData)
+          console.log(this.stockData)
           this.stockDataLoading = false
         })
         .catch(e => {

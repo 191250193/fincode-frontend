@@ -2,6 +2,7 @@ import axios from '@/plugins/axios'
 
 // 搜索股票
 export async function search(keyword) {
+  // console.log('keyword', keyword)
   const { data } = await axios.post('/stock/search', {
     keyword
   })

@@ -41,6 +41,7 @@ export default {
       })
     },
     searchStock(value) {
+      console.log('value', value)
       search(value).then(res => {
         if (res.code === 0) {
           this.dataSource = res.data.slice(0, 10).map(stock => {

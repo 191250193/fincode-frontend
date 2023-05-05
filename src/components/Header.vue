@@ -105,12 +105,12 @@ export default {
       } else if (menuItem.key === 'kg') {
         this.$router.push({ path: '/knowledge-graph/stock' })
       }
+    },
+    // 个人中心
+    toPersonalCenter() {
+      this.$router.push({ path: '/personalcenter' })
+      console.log('test')
     }
-  },
-  // 个人中心
-  toPersonalCenter() {
-    this.$router.push({ path: '/personalcenter' })
-    // console.log('test')
   },
   watch: {
     '$route.path'(newVal, oldVal) {

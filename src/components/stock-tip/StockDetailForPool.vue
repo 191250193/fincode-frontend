@@ -26,7 +26,7 @@
     </a-col>
     <a-col :span="4">
       <a-col :span="24" class="stock-detail-title-for-pool">
-        市场分类
+        市场分类{{id}}
       </a-col>
       <a-col :span="24" class="stock-detail-value-for-pool">
         {{ extInfo.market }}
@@ -36,7 +36,7 @@
       <a-col :span="24" class="stock-detail-title-for-pool">
       </a-col>
       <a-col :span="24" class="stock-detail-value-for-pool">
-        <a-button size="large" type="primary" shape="circle">删除</a-button>
+        <a-button size="large" type="primary" shape="circle" @click="deleteStock()">删除</a-button>
       </a-col>
     </a-col>
     <!-- <a-col :span="4" >
@@ -55,7 +55,11 @@ import { getStockDetailById } from '@/api/stock-detail/stock-detail'
 export default {
   components: {
   },
-  props: [],
+  props: {
+    id: {
+      default: 0
+    }
+  },
   data() {
     return {
       stock: {},
@@ -66,8 +70,13 @@ export default {
     }
   },
   methods: {
+    deleteStock() {
+      console.log(this.$parent)
+      // console.log(this.parent.$parent)
+      this.$emit('deleteStock', this.id)
+    },
     getStockDetail() {
-      getStockDetailById(this.$route.params.stockId).then(res => {
+      getStockDetailById(this.id).then(res => {
         // console.log(this.$route.params.stockId)
         // console.log(res)
         // console.log(this.stock.ext_info)

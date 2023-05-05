@@ -11,14 +11,29 @@
           <a-row type="flex" justify="space-between">
             <div class="strategy-sider-upper-title">
               当前股票池组合
-              <SearchFollowStock class="search"></SearchFollowStock>
+              <a-auto-complete
+                backfill
+                placeholder="添加请输入股票代码/名称"
+                @select="addToStockPool"
+                @search="searchStock"
+                :dataSource="dataSource"
+              >
+                <template slot="dataSource">
+                  <a-select-option
+                    v-for="item in dataSource"
+                    :key="item.id + '-' + item.tsCode"
+                    :title="item.name"
+                  >
+                    {{ item.tsCode }} {{ item.name }}
+                  </a-select-option>
+                </template>
+              </a-auto-complete>
             </div>
           </a-row>
         </a-row>
         <div class="strategy-sider-divider" />
         <div class="strategy-sider-lower">
-          <StockDetailForPool :stock="stockDetail" />
-          <StockDetailForPool :stock="stockDetail" />
+          <StockDetailForPool :stock="stockDetail" v-for="(item, key) in poolId" :key="key" :id="item" @deleteStock="deleteStockFromPool"/>
         </div>
       </a-layout-sider>
       <a-layout-content class="stock-content">
@@ -51,6 +66,8 @@
 
 <script>
 // import StrategyCheckbox from '@/components/stock-tip/StrategyCheckbox.vue'
+import { followStock, search } from '@/api/stock'
+import { Select } from 'ant-design-vue'
 import StockDetailForPool from '@/components/stock-tip/StockDetailForPool.vue'
 import StockDetail from '@/components/stock-tip/StockDetail.vue'
 import KLineChart from '@/components/KLineChart.vue'
@@ -65,10 +82,8 @@ import SearchFollowStock from '@/components/SearchFollowStock'
 export default {
   name: 'StockTip',
   components: {
-    // StrategyCheckbox,
+    ASelectOption: Select.Option,
     StockDetailForPool,
-    SearchFollowStock,
-    // StockDetail,
     'k-line': KLineChart
   },
   data() {
@@ -83,10 +98,36 @@ export default {
       strategyList: [],
       checkedStrategyIds: [0, 4],
       allStrategyIds: [],
-      refreshStrategy: false
+      refreshStrategy: false,
+      dataSource: [],
+      poolId2: [1597, 1820],
+      poolId: []
     }
   },
   methods: {
+    deleteStockFromPool(id) {
+      var tempArr = this.poolId.filter(item => item !== id)
+      this.poolId = tempArr
+      console.log('test', id, tempArr)
+    },
+    searchStock(value) {
+      search(value).then(res => {
+        if (res.code === 0) {
+          this.dataSource = res.data.slice(0, 10).map(stock => {
+            return {
+              id: stock.id.toString(),
+              name: stock.name,
+              tsCode: stock.tsCode
+            }
+          })
+        }
+      })
+    },
+    addToStockPool(value) {
+      const info = value.split('-')
+      this.poolId.push(info[0])
+      console.log(this.poolId)
+    },
     getStrategyOverall() {
       listOverallById(this.stockId).then(res => {
         // console.log(res)

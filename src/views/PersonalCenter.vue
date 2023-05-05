@@ -4,7 +4,7 @@
       <div class="user-avatar">
         <img src="../assets/user-image.png" alt="" />
       </div>
-      <div class="user-name">User_ABC</div>
+      <div class="user-name">{{ username }}</div>
       <div class="user-divider"></div>
       <ul class="personal-center-side-list">
         <li>
@@ -24,7 +24,7 @@
     <div class="personal-center-right fr">
       <SearchFollowStock class="search"></SearchFollowStock>
       <div class="follow-stock">
-        <a-table
+        <!-- <a-table
           :row-key="d => 'sr' + d.id"
           :data-source="stockData"
           :loading="stockDataLoading"
@@ -32,14 +32,14 @@
         >
           <a-table-column align="center" title="股票代码">
             <template slot-scope="text, record">
-              <a-button type="link" @click="toStock(record.id, record.code)">{{
-                record.code
+              <a-button type="link" @click="toStock(record.id, record.ts_code)">{{
+                record.ts_code
               }}</a-button>
             </template>
           </a-table-column>
           <a-table-column align="center" title="股票名称">
             <template slot-scope="text, record">
-              <a-button type="link" @click="toStock(record.id, record.code)">{{
+              <a-button type="link" @click="toStock(record.id, record.ts_code)">{{
                 record.name
               }}</a-button>
             </template>
@@ -69,15 +69,21 @@
             title="取消关注"
             data-index="unfollow"
           />
+        </a-table> -->
+        <a-table :dataSource="stockData" :columns="columns">
+          <!-- <template #action>
+            <a>Delete</a>
+          </template> -->
+          <a slot="action" slot-scope="record" @click="unfollowCurrentStock(record)">取消关注</a>
         </a-table>
       </div>
       <div class="follow-stock-footer">
-        <a-pagination
+        <!-- <a-pagination
           v-model="pageNum"
           :page-size="pageSize"
           :total="totalPages * pageSize"
           @change="onPageChange"
-        />
+        /> -->
       </div>
     </div>
   </div>
@@ -85,6 +91,27 @@
 
 <script>
 import SearchFollowStock from '@/components/SearchFollowStock'
+import { getFollowedStocks, unfollowStock } from '@/api/risk-report.js'
+import { getStockFullInfo } from '@/api/stock'
+
+const columns = [
+  { title: '股票代码', dataIndex: 'ts_code', key: 'ts_code' },
+  { title: '股票名称', dataIndex: 'name', key: 'name' },
+  { title: '昨日收盘', dataIndex: 'close', key: 'close' },
+  { title: '昨日开盘', dataIndex: 'open', key: 'open' },
+  { title: '昨日最高', dataIndex: 'high', key: 'high' },
+  { title: '昨日最低', dataIndex: 'low', key: 'low' },
+  { title: '涨跌幅', dataIndex: 'pct_chg', key: 'pct_chg' },
+  { title: '涨跌额', dataIndex: 'change', key: 'change' },
+  { title: '成交量', dataIndex: 'vol', key: 'vol' },
+  { title: '成交额', dataIndex: 'amount', key: 'amount' },
+  {
+    title: '取消关注',
+    dataIndex: '',
+    key: 'x',
+    scopedSlots: { customRender: 'action' }
+  }
+]
 
 export default {
   components: {
@@ -92,17 +119,175 @@ export default {
   },
   data() {
     return {
-      stockData: [],
       stockDataLoading: false,
+      stockData: [],
+      //   {
+      //     ts_code: '300117.SZ',
+      //     name: '嘉寓股份',
+      //     list_date: '20100902',
+      //     stock_id: 1597,
+      //     area: '北京',
+      //     close: 3.85,
+      //     high: 3.86,
+      //     low: 3.78,
+      //     open: 3.83,
+      //     pct_chg: 0.7853,
+      //     pre_close: 3.82,
+      //     amount: 40869.601,
+      //     change: 0.03,
+      //     vol: 106835,
+      //     industry_id: 4,
+      //     enname: '建筑业(E)',
+      //     time: 20230228
+      //   },
+      //   null,
+      //   {
+      //     ts_code: '603877.SH',
+      //     name: '太平鸟',
+      //     list_date: '20170109',
+      //     stock_id: 4093,
+      //     area: '浙江',
+      //     close: 22.17,
+      //     high: 22.95,
+      //     low: 20.81,
+      //     open: 21.21,
+      //     pct_chg: 4.0845,
+      //     pre_close: 21.3,
+      //     amount: 152171.388,
+      //     change: 0.87,
+      //     vol: 69880.38,
+      //     industry_id: 2,
+      //     enname: '制造业(C)',
+      //     time: 20230228
+      //   },
+      //   {
+      //     ts_code: '300993.SZ',
+      //     name: '玉马遮阳',
+      //     list_date: '20210524',
+      //     stock_id: 2444,
+      //     area: '山东',
+      //     close: 14.39,
+      //     high: 14.48,
+      //     low: 14.2,
+      //     open: 14.33,
+      //     pct_chg: 0.3487,
+      //     pre_close: 14.34,
+      //     amount: 25037.958,
+      //     change: 0.05,
+      //     vol: 17452.16,
+      //     industry_id: 2,
+      //     enname: '制造业(C)',
+      //     time: 20230228
+      //   },
+      //   {
+      //     ts_code: '603896.SH',
+      //     name: '寿仙谷',
+      //     list_date: '20170510',
+      //     stock_id: 4108,
+      //     area: '浙江',
+      //     close: 49.62,
+      //     high: 49.73,
+      //     low: 47.81,
+      //     open: 48.05,
+      //     pct_chg: 2.563,
+      //     pre_close: 48.38,
+      //     amount: 102662.824,
+      //     change: 1.24,
+      //     vol: 20888.87,
+      //     industry_id: 2,
+      //     enname: '制造业(C)',
+      //     time: 20230228
+      //   }
+      // ],
       pageNum: 1,
       pageSize: 8,
-      totalPages: 10
+      totalPages: 10,
+      columns
     }
   },
+  computed: {
+    username() {
+      return this.$store.state.username
+    }
+  },
+  mounted() {
+  // list = list.filter(n => n)
+    // this.stockData = this.stockData.filter(n => n)
+    // 预先填充数据，防止屏幕突然加长
+    for (let i = 0; i < this.pageSize; i++) {
+      this.stockData.push(this.mockStockData(i))
+    }
+    this.loadFollowedStocks()
+    // console.log('stock data', this.stockData)
+  },
   methods: {
+    unfollowCurrentStock(record) {
+      var id = record.stock_id
+      // console.log('stockId', id)
+      unfollowStock(id).then(res => {
+        this.loadFollowedStocks()
+        this.$message.success('取消关注成功')
+      })
+    },
+    mockStockData(idx) {
+      return {
+        id: idx,
+        code: '-',
+        name: '-',
+        close: 0,
+        open: 0,
+        high: 0,
+        low: 0,
+        pctChg: 0,
+        vol: 0,
+        amount: 0,
+        change: 0,
+        industryId: 0,
+        industryName: ''
+      }
+    },
+    toStock(id, tsCode) {
+      this.$router.push({
+        path: '/stock',
+        query: {
+          id,
+          tsCode
+        }
+      })
+    },
+    chgColor(pctChg) {
+      if (pctChg > 0) {
+        return 'color-rise'
+      } else if (pctChg < 0) {
+        return 'color-fall'
+      } else {
+        return ''
+      }
+    },
+    onPageChange() {
+      this.updateStockData()
+    },
     // 股票池
     toStockPool() {
       this.$router.push({ path: `/stockpool/${567}` })
+    },
+    loadFollowedStocks() {
+      getFollowedStocks(this.pageSize, this.pageNum).then((res) => {
+        if (res.code !== 0) {
+          console.error(res.message)
+          return
+        }
+        var kdata = []
+        for (var i = 0; i < res.data.length; i++) {
+          getStockFullInfo(res.data[i].id).then(res => {
+            if (res.data !== null) {
+              kdata.push(res.data)
+            }
+          })
+            .catch(e => {})
+        }
+        this.stockData = kdata
+      })
     }
   }
 }
