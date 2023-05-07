@@ -6,10 +6,10 @@
           type="flex"
           justify="center"
           align="middle"
-          class="strategy-sider-upper"
+          class="pool-sider-upper"
         >
           <a-row type="flex" justify="space-between">
-            <div class="strategy-sider-upper-title">
+            <div class="pool-sider-upper-title">
               当前股票池组合
               <a-auto-complete
                 backfill
@@ -31,34 +31,44 @@
             </div>
           </a-row>
         </a-row>
-        <div class="strategy-sider-divider" />
-        <div class="strategy-sider-lower">
+        <div class="pool-sider-divider" />
+        <div class="pool-sider-lower">
           <StockDetailForPool :stock="stockDetail" v-for="(item, key) in poolId" :key="key" :id="item" @deleteStock="deleteStockFromPool"/>
         </div>
       </a-layout-sider>
-      <a-layout-content class="stock-content">
-        <k-line
+      <a-layout-content class="pool-content">
+        <!-- <k-line
           :kData="kData"
           :buyPoints="buyPoints"
           :sellPoints="sellPoints"
+        /> -->
+        <k-line1
+          :kData="newKData[0]"
+          :buyPoints=[]
+          :sellPoints=[]
         />
-        <k-line
-          :kData="kData"
-          :buyPoints="buyPoints"
-          :sellPoints="sellPoints"
+        <k-line2
+          :kData="newKData[1]"
+          :buyPoints=[]
+          :sellPoints=[]
         />
-      </a-layout-content>
-      <a-layout-content class="stock-content">
-        <k-line
-          :kData="kData"
-          :buyPoints="buyPoints"
-          :sellPoints="sellPoints"
+        <k-line3
+          :kData="newKData[2]"
+          :buyPoints=[]
+          :sellPoints=[]
         />
-        <k-line
-          :kData="kData"
-          :buyPoints="buyPoints"
-          :sellPoints="sellPoints"
+        <k-line4
+          :kData="newKData[3]"
+          :buyPoints=[]
+          :sellPoints=[]
         />
+        <!-- <k-line
+          v-for="(item, key) in newKData"
+          :key="key"
+          :kData="item"
+          :buyPoints=[]
+          :sellPoints=[]
+        /> -->
       </a-layout-content>
     </a-layout>
   </a-row>
@@ -70,7 +80,10 @@ import { followStock, search } from '@/api/stock'
 import { Select } from 'ant-design-vue'
 import StockDetailForPool from '@/components/stock-tip/StockDetailForPool.vue'
 import StockDetail from '@/components/stock-tip/StockDetail.vue'
-import KLineChart from '@/components/KLineChart.vue'
+import KLineChart1 from '@/components/MulKLineChart/KLineChart1.vue'
+import KLineChart2 from '@/components/MulKLineChart/KLineChart2.vue'
+import KLineChart3 from '@/components/MulKLineChart/KLineChart3.vue'
+import KLineChart4 from '@/components/MulKLineChart/KLineChart4.vue'
 import {
   listOverallById,
   listTipById,
@@ -78,13 +91,15 @@ import {
 } from '@/api/stock-tip/stock-tip'
 import moment from 'moment'
 import SearchFollowStock from '@/components/SearchFollowStock'
-
 export default {
   name: 'StockTip',
   components: {
     ASelectOption: Select.Option,
     StockDetailForPool,
-    'k-line': KLineChart
+    'k-line1': KLineChart1,
+    'k-line2': KLineChart2,
+    'k-line3': KLineChart3,
+    'k-line4': KLineChart4
   },
   data() {
     return {
@@ -101,14 +116,15 @@ export default {
       refreshStrategy: false,
       dataSource: [],
       poolId2: [1597, 1820],
-      poolId: []
+      poolId: [],
+      newKData: []
     }
   },
   methods: {
     deleteStockFromPool(id) {
       var tempArr = this.poolId.filter(item => item !== id)
       this.poolId = tempArr
-      console.log('test', id, tempArr)
+      this.kLineData()
     },
     searchStock(value) {
       search(value).then(res => {
@@ -125,10 +141,29 @@ export default {
     },
     addToStockPool(value) {
       const info = value.split('-')
-      this.poolId.push(info[0])
-      console.log(this.poolId)
+      if (this.poolId.length < 4) {
+        this.poolId.push(info[0])
+      }
+      // console.log(this.poolId)
+      this.kLineData()
     },
-    getStrategyOverall() {
+    getStockPrice() {
+      const endDate = moment().format('yyyy-MM-DD')
+      listPriceById(this.stockId, endDate, 1200)
+        .then(res => {
+          // console.log(endDate)
+          // console.log(res)
+          const stockData = res.data.map(sri => this.priceMapper(sri))
+          // console.log(stockData)
+          // 先渲染首屏数据
+          this.kData = stockData
+          // // 再渲染全部剩余数据
+          // setTimeout(() => {
+          //   this.kData = stockData.slice(0, 240).concat(this.kData)
+          // }, 5000)
+        })
+    },
+    getStrategyOverall() { // allStrategyIds
       listOverallById(this.stockId).then(res => {
         // console.log(res)
         this.strategyList = res.data
@@ -143,12 +178,10 @@ export default {
         this.allStrategyIds = idList
       })
     },
-    getStrategyTips() {
+    getStrategyTips() { // buyPoints, sellPoints
       if (this.checkedStrategyIds.length === 0) {
         this.buyPoints = []
         this.sellPoints = []
-        this.curComMatch = '- -%'
-        this.curComProfit = '- -%'
         return
       }
       this.refreshStrategy = true
@@ -162,8 +195,6 @@ export default {
         if (res.data.tipList === null || res.data.tipList.length === 0) {
           this.buyPoints = []
           this.sellPoints = []
-          this.curComMatch = '- -%'
-          this.curComProfit = '- -%'
           return
         }
         for (var i = 0; i < res.data.tipList.length; i++) {
@@ -177,23 +208,18 @@ export default {
         }
         this.buyPoints = buyList
         this.sellPoints = sellList
-        this.curComMatch = (res.data.matchRate * 100).toFixed(1) + '%'
-        this.curComProfit = (res.data.profitRate * 100).toFixed() + '%'
       })
     },
-    getStockPrice() {
-      const endDate = moment().format('yyyy-MM-DD')
-      listPriceById(this.stockId, endDate, 1200).then(res => {
-        // console.log(endDate)
-        // console.log(res)
-        const stockData = res.data.map(sri => this.priceMapper(sri))
-        // console.log(stockData)
-        // 先渲染首屏数据
-        this.kData = stockData
-        // // 再渲染全部剩余数据
-        // setTimeout(() => {
-        //   this.kData = stockData.slice(0, 240).concat(this.kData)
-        // }, 5000)
+    kLineData() {
+      this.newKData = []
+      var tempArr = this.poolId.map((id) => {
+        // console.log('id:', id)
+        const endDate = moment().format('yyyy-MM-DD')
+        listPriceById(id, endDate, 1200).then(res => {
+          const stockData = res.data.map(sri => this.priceMapper(sri))
+          this.newKData.push(stockData)
+        })
+        console.log('newKData', this.newKData)
       })
     },
     isChecked(id) {
@@ -267,10 +293,10 @@ export default {
 <style lang="less">
 @import "../assets/default.less";
 
-.stock-content {
+.pool-content {
   background-color: @theme-color;
   height: 85vh;
-  flex: 1;
+  // flex: 1;
   display: flex;
   flex-direction: column;
 
@@ -280,19 +306,19 @@ export default {
     margin-bottom: 1%;
   }
 }
-.strategy-button {
+.pool-button {
   font-size: 1rem;
   margin: 2px;
 }
-.strategy-button-row {
+.pool-button-row {
   width: 80%;
 }
-.strategy-sider-divider {
+.pool-sider-divider {
   height: 0.5vh;
   margin-right: 1rem;
   background-color: @checked-color;
 }
-.strategy-sider-upper {
+.pool-sider-upper {
   background-color: @theme-color;
   overflow: auto;
   height: 13vh;
@@ -300,42 +326,42 @@ export default {
   margin-right: 1rem;
   padding: 0.5rem;
 }
-.strategy-sider-lower {
+.pool-sider-lower {
   background-color: @theme-color;
   height: 71.5vh;
   flex: 1;
   margin-right: 1rem;
   overflow: auto;
 }
-.strategy-sider-upper-title {
+.pool-sider-upper-title {
   color: @checked-color;
   padding: 3px;
   text-align: center;
   font-size: 20px;
 }
-.stock-content-upper-title {
+.pool-content-upper-title {
   color: @checked-color;
   padding: 20px 3px 20px 3px;
   text-align: center;
   font-size: 20px;
 }
-.strategy-sider-upper-value {
+.pool-sider-upper-value {
   color: @highlight-color;
   padding: 2px;
   text-align: center;
 }
-.strategy-sider-lower::-webkit-scrollbar {
+.pool-sider-lower::-webkit-scrollbar {
   /*滚动条整体样式*/
   width: 10px; /*高宽分别对应横竖滚动条的尺寸*/
   height: 1px;
 }
-.strategy-sider-lower::-webkit-scrollbar-thumb {
+.pool-sider-lower::-webkit-scrollbar-thumb {
   /*滚动条里面小方块*/
   border-radius: 10px;
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
   background: #033761;
 }
-.strategy-sider-lower::-webkit-scrollbar-track {
+.pool-sider-lower::-webkit-scrollbar-track {
   /*滚动条里面轨道*/
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
   background: @theme-color;

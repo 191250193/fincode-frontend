@@ -1,13 +1,13 @@
 <template>
   <div class="k-line-chart">
-    <div id="kLineChart" style="width: 100%; height: 100%;"></div>
+    <div id="kLineChart1" style="width: 100%; height: 100%;"></div>
   </div>
 </template>
 
 <script>
 import echarts from '@/plugins/echarts'
 export default {
-  name: 'KLineChart',
+  name: 'KLineChart1',
   /**
    * kData: {
    *  date: '2016-02-15',
@@ -28,59 +28,6 @@ export default {
     }
   },
   methods: {
-    updateBuyPointsData() {
-      const data = []
-      for (const p of this.buyPoints) {
-        const idx = this.indexOfKData(p)
-        if (idx !== -1) {
-          data.push({
-            value: '买',
-            coord: [p, this.kData[idx].high * (1 + 0.001)],
-            itemStyle: {
-              color: '#B03A5B'
-            }
-          })
-        }
-      }
-      this.buyPointsData = data
-    },
-    updateSellPointsData() {
-      const data = []
-      for (const p of this.sellPoints) {
-        const idx = this.indexOfKData(p)
-        if (idx !== -1) {
-          data.push({
-            value: '卖',
-            coord: [p, this.kData[idx].low * (1 - 0.001)],
-            symbolRotate: 180,
-            itemStyle: {
-              color: '#1890ff'
-            },
-            label: {
-              position: 'insideBottom',
-              offset: [0, 1]
-            }
-          })
-        }
-      }
-      this.sellPointsData = data
-    },
-    updateMarkPointData() {
-      if (this.kData.length > 0) {
-        this.updateBuyPointsData()
-        this.updateSellPointsData()
-        this.chart.setOption({
-          series: [
-            {
-              id: 'k',
-              markPoint: {
-                data: this.buyPointsData.concat(this.sellPointsData)
-              }
-            }
-          ]
-        })
-      }
-    },
     // 根据日期搜索 K 线数据
     indexOfKData(date) {
       for (let i = 0; i < this.kData.length; i++) {
@@ -92,8 +39,8 @@ export default {
     }
   },
   mounted() {
-    console.log('1kdata in chart:', this.kData, this.buyPoints, this.sellPoints)
-    this.chart = echarts.init(document.getElementById('kLineChart'))
+    // console.log('1kdata in chart:', this.kData, this.buyPoints, this.sellPoints)
+    this.chart = echarts.init(document.getElementById('kLineChart1'))
     this.chart.setOption({
       series: [
         {
@@ -170,7 +117,7 @@ export default {
   },
   watch: {
     kData(newKData) {
-      console.log('kdata in chart:', this.kData, this.buyPoints, this.sellPoints, newKData)
+      // console.log('kdata in chart:', this.kData, this.buyPoints, this.sellPoints, newKData)
       // 获取缩放日期区间边界值
       const chart = this.chart
       var _this = this
@@ -182,7 +129,7 @@ export default {
         _this.$store.commit('rangeDateBeginSetter', _this.rangeStart)
         _this.$store.commit('rangeDateEndSetter', _this.rangeEnd)
       })
-      console.log('kdata in chart:', this.kData, this.buyPoints, this.sellPoints)
+      // console.log('kdata in chart:', this.kData, this.buyPoints, this.sellPoints)
       this.chart.setOption({
         series: [
           {
@@ -210,14 +157,7 @@ export default {
           }
         ]
       })
-      this.updateMarkPointData()
       this.chart.resize()
-    },
-    buyPoints() {
-      this.updateMarkPointData()
-    },
-    sellPoints() {
-      this.updateMarkPointData()
     }
   }
 }

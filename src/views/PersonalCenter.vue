@@ -277,6 +277,7 @@ export default {
           console.error(res.message)
           return
         }
+        console.log('res', res)
         var kdata = []
         for (var i = 0; i < res.data.length; i++) {
           getStockFullInfo(res.data[i].id).then(res => {
